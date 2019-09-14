@@ -5,24 +5,29 @@
  */
 var fs = require('fs'),
     mongoose = require('mongoose'), 
-    Schema = mongoose.Schema, 
     Listing = require('./ListingSchema.js'), 
-    config = require('./config');
-
-/* Connect to your database using mongoose - remember to keep your key secret*/
-//see https://mongoosejs.com/docs/connections.html
-//See https://docs.atlas.mongodb.com/driver-connection/
-
-/* 
-  Instantiate a mongoose model for each listing object in the JSON file, 
-  and then save it to your Mongo database 
-  //see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
-
-  Remember that we needed to read in a file like we did in Bootcamp Assignment #1.
- */
+    config = require('./config.js'),
+    listings = require('./listings.json');
 
 
-/*  
-  Check to see if it works: Once you've written + run the script, check out your MongoLab database to ensure that 
-  it saved everything correctly. 
- */
+
+let db = mongoose.connect(config.db.uri, {
+  useCreateIndex:true,
+  useNewUrlParser:true,
+  useUnifiedTopology:true,
+  family:4
+}).catch(error => handleError(error));
+
+for(var i = 0; i < listings.entries.length; i++ ){
+  
+  var listing = Listing(listings.entries[i]);
+  listing.save(function(err){
+    if(err){
+      console.log(i);
+      throw err;
+    }
+  });
+}
+
+// 2 second time delay otherwise it would kill connection during the last write to DB
+setTimeout(function() {mongoose.disconnect()}, 1000); 
