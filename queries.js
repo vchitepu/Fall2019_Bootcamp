@@ -67,4 +67,4 @@ removeCable();
 updatePhelpsMemorial();
 retrieveAllListings();
 
-setTimeout(function() {mongoose.disconnect()}, 1000) 
+setTimeout(function() {mongoose.disconnect()}, 5000) 

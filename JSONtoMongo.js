@@ -29,5 +29,5 @@ for(var i = 0; i < listings.entries.length; i++ ){
   });
 }
 
-// 2 second time delay otherwise it would kill connection during the last write to DB
-setTimeout(function() {mongoose.disconnect()}, 1000); 
+// 1 second time delay otherwise it would kill connection during the last write to DB
+setTimeout(function() {mongoose.disconnect()}, 5000); 
