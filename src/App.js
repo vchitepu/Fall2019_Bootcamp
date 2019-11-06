@@ -33,7 +33,7 @@ class App extends React.Component {
     var latitude = building.coordinates.latitude;
     var longitude = building.coordinates.longitude;
 
-    var data_temp = this.props.data;
+    var data_temp = this.state.data;
     var id = data_temp.length + 1;
 
     var new_building = {
