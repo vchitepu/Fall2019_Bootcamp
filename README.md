@@ -1,264 +1,370 @@
-# Creating a server-side API module using Express
-### Overview
-In Bootcamp# 1, we created a server to host our UF Directory App by implementing a primitive server-side router that responded to a single GET requests to '/listings' that retrieved our listings from a json file and sent the directory listingsto the client’s browser. 
+### Bootcamp 4 - Introduction to Front-end Development with React
 
-In Bootcamp #2, we worked with MongoDB Atlas database (DBaaS) to make our listing data persistent. We setup communication between database (MongoDB Atlas) and server (node.js) using Mongoose as our connection driver.  We then created a database schema to organize the listings and we wrote a script `JSONtoMongo.js` to populate the database from the json file. We also created some test queries `queries.js` to ensure that our database worked.
+In this assignment, we will continue to build upon our directory application by creating a front-end interface with React.js to display listings, as well as the ability to add new listings and delete old ones. 
 
-In this thrid bootcamp, we will add more functionality to this server by integreating in the CRUD functionality of Bootcamp #2 to create, read, update, and delete listings from a Mongo database as well as implement a server-side API that will allow us respond to http requests for creating, updating, and deleting listings from the client/browser. We will also use a 3rd party geocoding API, open cage data, to retreive latitude and longitude coordinates for new buidlings we add to this database. 
+This readme file contains a very detailed overview of the technologies and concepts we will be using for this project. I highly suggest reading through it throughly and as you start working on the project visiting many of the linked items to understand the concepts and technologies in more depth.
 
-## Introduction to Express & Middleware
-[***Express***](https://expressjs.com/) is a routing and middleware web framework that has minimal functionality of its own: An Express application is essentially a series of middleware function calls. Middleware functions are functions that have access to the request object (req), the response object (res), and the next() middleware function in the application’s request-response cycle. The next middleware function is commonly denoted by a variable named next.
+### FRONT-END DEVELOPMENT
+Front-end web development revolves around anything you create that the users of that specific app sees. To put it plainly, it is everything to do with the User Interface (UI) of the app.
 
-Middleware functions can perform the following tasks:
-- Execute any code.
-- Make changes to the request and the response objects.
-- End the request-response cycle.
-- Call the next middleware function in the stack.
-- If the current middleware function does not end the request-response cycle, it must call next() to pass control to the next middleware function. Otherwise, the request will be left hanging.
+When developing the UI of your web application you will be using three major languages:
+- [**HTML**](https://www.w3schools.com/html/) (HyperText Markup Language) is a [**markup language**](https://en.wikipedia.org/wiki/Markup_language) most commonly used to create web pages. HTML is used to build the structure of your web page.
+- [**CSS**](https://www.w3schools.com/css/default.asp) (Cascading Style Sheets) is used to describe the presentation of our HTML pages. It is a styling markup language is used to format the appearance of different structural elements. 
+- [**JavaScript:**](https://www.w3schools.com/js/default.asp) A programming language is used to describe the functionality and handle all the dynamic elements on the web page. 
+- [**JSX**](https://reactjs.org/docs/introducing-jsx.html) - JSX is a syntax extension to JavaScript used by React. JSX mixes HTML and JavaScript. It is similar to a template language, but it has full power of JavaScript.
 
-An Express application can use the following types of middleware:
-- Application-level middleware
-- Router-level middleware
-- Error-handling middleware
-- Built-in middleware
-- Third-party middleware
+If you aren't familiar with these technologies, please go through [this tutorial](http://learn.shayhowe.com) to learn the fundamentals of these two web technologies before continuing to the ***Bootstrap 4*** section. Keep in mind that this tutorial is very detailed and may take some time. Make sure to pay specific attention to:
 
-### How Middleware Works
-Understanding the concept of **middleware** is extremely important in using Express effectively. Middleware are software architecture tools that allow you to invoke functions on a request before it reaches its final request handler. As a simple (yet quite useless) example, let's add a greeting to each request made to the server. 
+-   The semantic nature of HTML
+-   Layering CSS styles in a modular fashion using multiple classes
+-   The box model
+-   Positioning content with CSS
 
-```javascript
-/*app.use() Invokes this middleware function every time a request is 
-received on any route for the express server */
-app.use(function(req, res, next) {
-  req.greeting = 'Hello there!';
-  next();
-});
+To get a basic introduction to JSX [**see the docs here**](https://reactjs.org/docs/introducing-jsx.html) and find a more in-depth tutorial on JSX [**here**](https://reactjs.org/docs/jsx-in-depth.html). In most cases, we will use JSX instead of Javascript to develop our application. 
 
-//GET routing request handler
-app.get('/', function(req, res) {
-  res.send(req.greeting);
-});
+### Bootstrap 4 - Styling Templates
+While we could create our web application with just HTML, CSS, and Javascript, writing all of our styles from scratch would be tedious.
+
+Say we have an application that will be used by desktop, tablet, and mobile users alike. Our CSS would have to be responsive, changing the layout of the page depending on the user's device. Luckily, we have [Bootstrap](http://getbootstrap.com/), a responsive HTML/CSS/JS framework made by Twitter, to style our web applications. Bootstrap provides a [grid system](https://getbootstrap.com/docs/4.3/layout/grid/) for easy layout and many components that will give the application a clean, modern, and consistent look.
+
+Bootstrap's documentation is extensive, so don't worry about memorizing everything Bootstrap has to offer. If you understand the fundamentals of HTML and CSS, you should feel comfortable with the mechanics of the grid system and using classes to add styles to your HTML components. It'll be a better use of time to just refer back to the documentation whenever you need to add a new component to your webpage.
+
+**Getting Started - Bootstrap 4**  https://getbootstrap.com/docs/4.3/getting-started/introduction/
+
+**Resources**
+- [Bootstrap Style Guide](https://drive.google.com/file/d/1fumbJT-ln-WzrSY_ZEtN44WhAw2asyXF/view) created for course
+- Example Bootstrap Components and Layouts (https://getbootstrap.com/docs/4.3/examples/)
+- [Components](https://getbootstrap.com/docs/4.3/components/) - Look in the sidebar for additional components - buttons, input groups, toasts, forms, etc
+- [Feather](https://feathericons.com/) Open Source Icons
+
+### Single-page Application
+In this course and project we will be building, a single-page application. A single-page applictation is an application that loads a single HTML page and all the necessary assets (such as JavaScript and CSS) required for the application to run. Any interactions with the page or subsequent pages do not require a round trip to the server which means the page is not reloaded. Most modern web development relies on single-page applications. 
+
+### Model-View-Controller (MVC) Architecture
+
+A common design pattern used for developing user interfaces is the **model-view-controller** architecture. As the name suggests, in this architecture the application is broken up into three main components:
+
+-   The **model** is where the application's main data objects are stored.
+-   The **view** presents models to the user, and allows the user to interact with the models
+-   The **controller** interfaces between the model and the view
+    -   it updates models according to input provided by the user in the view
+    -   it updates the view when a model changes
+
+The MVC concept has many variations and often does not _exactly_ follow the pattern described above. You can take a look at [this page](https://developer.chrome.com/apps/app_frameworks) for more information, or simply go a Google search for MVC architecture.
+
+### Component-Based Architecture (CBA)
+[**Component-Based-Architecture**](https://medium.com/@dan.shapiro1210/understanding-component-based-architecture-3ff48ec0c238) is a newer architecture design method creating the  user interface (UI) of web applications. The goals is to encapsulate individual pieces of a larger UI (aka components) into self-sustaining, independent micro-systems. This architecture was created and popularized by Facebook developers as a means of maximize the functionality and performance of their newsfeed.
+
+You can think of a component as a small feature that makes up a piece of the user interface (e.g., buttons, newsfeeds, blogs, comments). Each of these components exist within the same space, yet interact independently from one another. Components have their own structure, their own methods and their own APIs. Components are also reusable and can be “pasted” into interfaces at will. The independent nature of components allows for developers to create a UI with many different moving parts.
+
+
+Facebook developers based component based architecture off of the concept of [**AJAX**](https://www.w3schools.com/xml/ajax_intro.asp) request, in which call to the server are made directly from the client-side, allowing for the [**DOM**](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction) (Document Object Model) to be dynamically uploaded without the need to refersh the page.  Components each have their own interfaces that can make calls to the server and update their interfaces. Because components are independent, one component can refresh without affecting other components or the UI as a whole. Additional resources: [**Good DOM Explanation with pictures**](https://css-tricks.com/dom/) and [**DOM as defined by W3C**](https://www.w3.org/TR/DOM-Level-2-Core/introduction.html).
+
+React.js, specifically, handles components in an extremely performance focused way. React.js uses something called a [**virtual DOM**](https://programmingwithmosh.com/react/react-virtual-dom-explained/) which uses a “diffing” algorithm to detect changes to a component and only render those changes, as opposed to re-rendering the entire component.
+
+*Differnce Between MVC and CBA*
+CBA also requires that all methods and APIs pertaining to a single component exist within that component’s structure, a JavaScript class. 
+
+MVC splits responsibilities of an application horizontally, e.g., separates structure, helper methods, and routing into different levels of the application. This results in a multi layered horizontal architecture. On the other hand, CBA splits them vertically, e.g., components contain all of design, logic, and helper methods within the within a single class and the same level of the architecture (generally the view).  This means that developers don’t have to spend much time trying to find which functions pertain to which parts of an application’s UI.
+
+The purpose of MVC is ensure that each level of an application has it’s own separate responsibility, while the purpose of CBA is the encapsulate all of those responsibilities within one space.
+
+*Beware of Issues with CBA*
+One of CBA’s most glaring issues is a propensity towards over-engineering. While CBA encourages reusability and single-responsibility, it can often lead to bloated and polluted views. When using many components, there is the possibility that readability might actually become degraded.
+
+ In the case of React.js, the library was created with the intention of being used in applications wherever needed. Essentially, you can “sprinkle” React components across several different parts of your UI. However, many developers treat React.js as a framework and engineer every. single. aspect of their UI as a component. This is unnecessary and self-indulgent. CBA should only be use in specific instances and does not need to dictate the entire structure of your application.
+
+Thus, only use React Components for implementing dynamic functionality when needed in your application.
+
+
+### REACT
+
+[**React**](https://reactjs.org/) is a JavaScript library for building user interfaces. Created by Facebook, Instagram, and the community. React is the V is View in the MVC architecture. React uses a compinent-based architecture to implemnt and manage the View of a web applciation. 
+
+React makes it (relatively) easy to start building an application by extending HTML so that the markup can describe not only the static webpage but also dynamic behavior. 
+
+Note: Outside of the pure React library itself, there are 3 distinct versions of React: React-devtools, ReactJS.Net, React Native. Other than React itself, React Native is pretty popular as well for creating Native mobile apps. However we will be using React.js.
+
+React uses its own flavor og Javascript called JSX. JSX allows us to describe our User Interfaces (UIs) in a syntax very close to the HTML that we are used to. It is, however, optional. React can be used without JSX, as you can see on the right side. In fact, React just compiles the JSX you see on the left to the pure JavaScript you see on the right. Then it works with compiled JavaScript in the browser. 
+
+[**React Components**](https://www.freecodecamp.org/news/how-to-write-your-first-react-js-component-d728d759cabc/)
+Components are the basic building blocks of a React Application.As you think about the UI of your web application, identify aspects of your UI that are used several times (Button, Panel, Avatar), or are complex enough on its own (App, FeedStory, Comment). These are good candidates for reusable components you should develop.  
+
+React components are small, reusable pieces of code that return a React element to be rendered to the page. A components can be broken down into distinct pieces of functionality and used within other components. Components can return other components, arrays, strings and numbers. 
+
+ A React component can be one of two types: (1) a function component or (2) a class component. Sometimes you will hear different terms to describe these two types, like stateless and stateful. Function components are stateless and are often associated with the presentational concept. Class Components are stateful.
+
+The simplest version of React component is a plain JavaScript function that returns a React element:
+```Javascript
+function Welcome(props) {
+  return <h1>Hello, {props.name}</h1>;
+}
 ```
-In addition to the usual request (req) and response (res) objects, we now pass an additional object called *next()*. Invoking *next()* will pass the request on to whatever function is next in line to handle it. When there are a series of middleware function called one after the other it is considered a *middleware chain.* When the last one is called it sends the response back the the browser. You must call next() unless it is the last function in the chain, otherwise it will cause the browser to hang. Side Note: Passing functions and the results of those functions as parameters, is a common pattern in functional programming and cool feature of Javascript. 
- 
-Now, let's consider a more useful scenario, say the application we are building has users with administrative privledges. There will be certain routes that we want to make sure the user has the correct privledges before allowing the request to be handled. Using Express, this becomes a relatively simple task:
+Function components take in props (i.e., data), and output to the DOM. It returns what looks like HTML, but is really a special JavaScript syntax called JSX.
 
-```javascript
-//CheckPermissions Middleware
-var checkPermissions = function(req, res, next) {
-  if(req.isAdmin === true) {
-    next();
-  } else {
-    res.status(400).send('User does not have permission to access this path');
+Components can also be ES6 classes
+```Javascript
+class Hello extends React.Component {
+    render() {
+        return <h1> Hello, {this.props.name}</h1>;
+      }
+} 
+ReactDOM.render(<Hello />, mountNode);
+
+
+```
+This code creates a simple Hello Component and renders a modified `<h1>` tag and the name of the person passed in from another component.
+
+A class component is the predominant way to define a React component. It also acts like a function that receives props (i.e., data), but also considers a private internal state as input that controls the returned JSX. This private internal state is what gives React its reactive nature. When the state of a class component changes, React will re-render that component in the browser. Therefore, class components, take as input state and props, process them, and output to the DOM using the render() function. 
+
+Note: Class components can only change their internal state, not their properties.
+
+[**Anatomy of a React Componnent**](https://codeburst.io/react-state-vs-props-explained-51beebd73b21)
+
+[React Components](https://reactjs.org/docs/react-component.html)  
+Component names should also always start with a capital letter (`<Wrapper/> not <wrapper/>`). See [**documentation**](https://reactjs.org/docs/components-and-props.html#rendering-a-component) for more information on rendering components.
+
+All react Components have the following featuress:
+- *render()* - Mandatory
+- *constructor()*
+- *Import* 
+- Usage *<component />* - Looks similar to an HTML Tag and is used by parent components to add the child component to your application
+- *Export* - Makes the componenet accessible for us in other parts of the application
+
+Components classes
+```Javascript
+import React from 'react';
+
+class Hello extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      nameText: ''
+    };
   }
-};
-/*GET request for route /privateData - before it can be accessed it must 
-first pass the criteria in the checkPermission middleware function
-*/
-app.get('/privateData', checkPermissions, function(req, res) {
-  res.send('Some really critical information');
-});
-```
 
-The `checkPermissions` function serves as *middleware* that is invoked before passing the request to its final destination. If the user has the right credential, it is granted access and the next() function is called and program control returned back to this request handler and proceeds on. If it doesn't then, it errors out and no permission is granted.
-
-A final note: **order matters** when using middleware. If you place `app.use()` after a request handler, that middleware will not be invoked. Keep this in mind when developing your applications in case you encounter bugs. 
-
-If the concept of middleware is still confusing, you can read the [express documentation](https://expressjs.com/en/guide/using-middleware.html), an article on [writing middleware](https://expressjs.com/en/guide/writing-middleware.html), and these blog posts [post #1](https://medium.com/@agoiabeladeyemi/a-simple-explanation-of-express-middleware-c68ea839f498) and [post #2 ](https://medium.com/@jamischarles/what-is-middleware-a-simple-explanation-bb22d6b41d01)for further information. 
-
-### Server-Side Routing API
-In this Bootcamp, we will build middleware in Express to help us with server-side routing and implement business logic on resources (e.g., listings) to curate the content we want to serve up to the client. 
-
-Let's start with ther server-side routing. Since we are looking to expand the functionality of our server from Bootcamp #1 to handle additional requests, we could handle them in the same fashion as the original request handler...but it would quickly become unweildly because there would need to be a bunch of conditional statements to handle requests to the different URL paths and different HTTP methods (such as POST, PUT, and DELETE). Luckily, the  [**Express**](https://expressjs.com/en/5x/api.html#express.router) library makes this task much simpler by providing a layer of abstraction for handling HTTP requests in a Node server. 
-
-To provide an example, here is the request handler we wrote in Bootcamp 1:
-
-```javascript
-var requestHandler = function(request, response) {
-  var parsedUrl = url.parse(request.url);
-
-  if(request.method === 'GET') {
-    if(parsedUrl.path === '/listings') {
-      response.writeHead(200, { 'Content-Type': 'application/json' });
-      response.end(JSON.stringify(listingData));
-    } else {
-      response.writeHead(404);
-      response.end('Bad gateway error'); 
-    }
-  } else {
-    response.writeHead(404);
-    response.end('Bad gateway error');
+  nameUpdate(value) {
+       this.setState({
+          nameText: value
+    })
   }
-};
+
+  render() {
+
+      return <h1> Hello, {this.props.nameText}</h1>;
+  }
+}
+export default Hello;
 ```
+This simple Hello Component takes in a value and when the nameUpdate function is called, it triggers a change state, and stores the name passed to it
 
-Now here is the same request handler written using Express:
-```javascript
-app.get('/listings', function(req, res) {
-  res.send(listingData);
-});
+*Component Communication* -State vs Props
 
-app.all('/*', function(req, res) {
-  res.status(404).send('Bad gateway error');
-});
-```
-Looking for information on using Express as router middleware take a look at the [documentation](https://expressjs.com/en/guide/using-middleware.html#middleware.router). Also take a look at the documentation on [request](https://expressjs.com/en/4x/api.html#req) and [response](https://expressjs.com/en/4x/api.html#res) objects.
+In a React component, props carry data around your application. Props are variables passed to it by its parent component. State on the other hand are also variables, but directly initialized and managed by the component. The state can be initalized by props.
 
-### Server-side Controllers
-Express can also be used to create server-side controllers that contain the business logic for processing a resource. The controller will contain methods for handling all the [CRUD operations](https://scotch.io/tutorials/using-mongoosejs-in-node-js-and-mongodb-applications). In your application, you many have multiple controllers that perform different functions on different resources. In this bootcamp, we have two controllers that help to manage coordinates and the listings. Check out this [tutorial](https://www.callicoder.com/node-js-express-mongodb-restful-crud-api-tutorial/) with code example to help you get started on developing the `listings.server.controller.js` and `coordinates.server.controller.js` files for this bootcamp.
+The State and Props objects have one important difference. Inside a class component, the State object can be changed while the Props object represents fixed values.
 
-This is an example update function for a contact controller from a [CRUD API tutorial](https://medium.com/@dinyangetoh/how-to-build-simple-restful-api-with-nodejs-expressjs-and-mongodb-99348012925d)
-``` Javascript
-exports.update = function (req, res) {
+For example, a parent component might include a child component by calling
+```Javascript
+<ChildComponent />
+````
+The parent can pass a prop by using this syntax:
+```Javascript
+<ChildComponent color=green/>
+````
+Inside the ChildComponent constructor we could access the prop:
+```Javascript
+class ChildComponent extends React.Component {
+  constructor(props) {
+    super(props)
+    console.log(props.color)
+  }
+}
+````
+and any other method in this class can reference the props using this.props.
 
-//identify the contact to be updated
-Contact.findById(req.params.contact_id, function (err, contact) {
+Props can be used to set the internal state based on a prop value in the con
+structor, like this:
+````Javascript
+class ChildComponent extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state.colorName = props.color
+  }
+}
+````
+Props should never be changed in a child component, so if there’s something going on that alters some variable, that variable should belong to the component state.
 
-//Check for an error
-        if (err)
-            res.send(err);
+Props are also used to allow child components to access methods defined in the parent component. This is a good way to centralize managing the state in the parent component, and avoid children to have the need to have their own state.
 
-//Update the contact information
-        contact.name = req.body.name;
-        contact.gender = req.body.gender;
-        contact.email = req.body.email;
-        contact.phone = req.body.phone;
+Most of your components will just display some kind of information based on the props they received, and stay stateless.
 
-// save the contact and check for errors
-        contact.save(function (err) {
-            if (err)
-                  res.status(400).send(err);
-            res.json({
-                message: 'Contact Info updated',
-                data: contact
-            });
-        });
-    });
-};
-```
+### Getting Started with React
+React certainly has a learning curve, and you should take some time going through tutorials to understand the basics. Below is a list of concepts and resources that may be helpful.
 
-A core concept used to implement server-side controllers using Express for Node.js are [exports and export modules] ](https://www.freecodecamp.org/news/node-js-module-exports-vs-exports-ec7e254d63ac/). The module.exports or exports is a special object which is included in every JS file in the Node.js application by default. `module` is a variable that represents the current module and `exports` is an *object* that will be *exposed as a module*. So, whatever you assign to module.exports or exports, will be exposed as a module. Exports and export modules do the same work of providing you with a "convenience" variable that you can use across files in your application. 
+[**React Vocabrulary**](https://reactjs.org/docs/glossary.html) - This is a must read as you are working though the assignment and tutorials.
+[**Thinking in React**](https://reactjs.org/docs/thinking-in-react.html) - This gives you an overview and philosophy for developing in React.
+[**React Developer Tools**](https://www.freecodecamp.org/news/how-to-see-your-react-state-props-in-the-browser-774098a50fcc/) Download the React Developer Tools Chrome Plug-in to help you debug your application or use the Chrome Developer Tools
 
-The module.exports object is automatically created by Node.js. and gets returned from require(). *Note: Exports is NOT returned by require() module.exports is returned.* module.exports is just a reference to a plain JavaScript object and empty object by default. It is fine to [use it to represent many different programmatic constructs](https://tutorialsteacher.com/nodejs/nodejs-module-exports) (e.g., string literal, function, models etc). There are two ways we can use module.exports:
-    - Attaching public methods to it 
-    - Replacing it with our custom object or function.
+**Tutorials**
+*Getting Started: Creating a simple react app*
+[**Baby Name Tutorial**](https://www.youtube.com/playlist?list=PLHrxuCR-0CcT7hgVVlh0lBWTqYkEEF55m) This is a 12 part video tutorial that walks through how to create a simple web applicaiton. It is very similar to the app that you will create in this assignment. *NOTE: I highly recommend working throuhg this tutorial and adapting it to complete this assighment.*
+[**Create-react-app**](https://reactjs.org/docs/create-a-new-react-app.html) is a comfortable environment for learning React, and is the best way to start building a new single-page application in React.
 
-In Bootcamp #2, module.export is used to create a custom object in the `ListingSchema.js` file, exporting it as `Listing` at the end of the file. In Bootcamp #3, this file is renamed `listings.server.model.js`.
-```javascript
-/* Import mongoose and define any variables needed to create the schema */
-    var mongoose = require('mongoose'), 
-    Schema = mongoose.Schema;
+**Other Tutorials**
+-   *Tutorialspoint*: [ReactJS Tutorial](https://www.tutorialspoint.com/reactjs/index.htm)
+-   *Code Academy*: [Learn ReactJS](https://www.codecademy.com/learn/react-101)
+-   *Tutorial provided from the [*ReactJS website*](https://reactjs.org/tutorial/tutorial.htmll)
+-   *Egghead_io* [videos on ReactJS](https://egghead.io/courses/the-beginner-s-guide-to-react)
 
-var listingSchema = new Schema({
-  /* your code for the your schema listing */
-});
 
-listingSchema.pre('save', function(next) {
-  /* create a 'pre' function that adds the updated_at and created_at properties */
-});
+**React Concepts, you'll need for this bootcamp**
+**Note:** You _do not_ need to go through all of these, just start to get familiar enough with React-specific concepts to complete this assignment, particularly the following:
 
-/* Use your schema to instantiate a Mongoose model */
-var Listing = mongoose.model('Listing', listingSchema);
+*React Basics*
+- ReactDOM - https://reactjs.org/docs/react-dom.html
+*Note: ReactDOM uses camelCase property naming convention instead of HTML attribute names. For example, tabindex becomes tabIndex in JSX. The attribute class is also written as className since class is a reserved word in JavaScript.*
+- DOM Elements - https://reactjs.org/docs/dom-elements.html
+- React components -   [Components](https://reactjs.org/docs/react-component.html)  
+*Note: Component names should also always start with a capital letter <Wrapper/>*
+-- render() -
+-- constructor()
+-- Import & Usage <component /> // Looks similar to an HTML Tag
+-- Export
 
-/* Export the model to make it avaiable to other parts of your Node application */
-module.exports = Listing;
-```
-In Bootcamp #3, exports is used to implemenet a set of functions in `listings.server.controller.js`. *Note:* Using just exports.functionName (e.g., exports.read and exports.update) is exporting the functionality as you go. No need for a big export module.exports function at the end of the file.
-```javascript
-var mongoose = require('mongoose'), 
-    Listing = require('../models/listings.server.model.js');
+*State & Pasing State*
+-   Passing State - props
+-- https://reactjs.org/docs/react-component.html#props 
+-- https://reactjs.org/docs/render-props.html
+-- https://reactjs.org/docs/components-and-props.html
+-   refs - https://reactjs.org/docs/refs-and-the-dom.html
+-- Forwarding Refs https://reactjs.org/docs/forwarding-refs.html
+- this.state - https://reactjs.org/docs/react-component.html#state
+--  this.setState
+- .bind(this) - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
+
+
+*Processing an Array of objects*
+- Filter -   [Array.filter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter)
+- Map -   [Array.map](https://reactjs.org/docs/lists-and-keys.html) 
+
+*Forms & Event Handling*
+- Forms - https://reactjs.org/docs/forms.html
+- Event Handling - https://reactjs.org/docs/handling-events.html
+-- onClick
+-- onChange 
+
+
+### Assignment Overview
+For this assignment you will be building upon our UF directory application by creating a front-end interface with React.js to display listings, search/filter, as well as the ability to add new listings and delete old ones. Note: We won't connect the front-end to the back-end in this assignment, we will leave that for Bootcamp #5.
+
+#### In this GitHub Repository, you are given the following files
+*When using the [create-react-app](https://github.com/facebook/create-react-app) read the readMe to get a starter application up and running, you can replace the src file in the starter application with the src file from the Bootcamp #4 assignment repo*
+- *Data.js* - A list of buildings formatted to work with React and JSX to render the contents to the browser
+- *index.css* - A starter CSS templage for you to use for this project
+- *app.css* - An empty file that we aren't using for this project but do not delete it as it will affect the functioning of your program
+- *index.js* - This file is used in creating the application file that you will be manipulating through the App.js file. This is where we have injected the data.js file and the building data that we pass around for the entire application.
+- *App.js* - This is the main application we are developing. The majority of our development will be in this file.
+    - It prints out the directory listings
+    - It has a Textbox for searching/filtering the results
+    - It has a display box for printing out more details about the selected building
+    - It imports and uses several React Component files to implement this functionality
+
+- React Component Files - *React use compoenents to organize and squirrel away functionality so that we can reuse it in multiple places. Ultimately, it allows our code to look cleaner and maximizes reusability for future developmen.*
+    - *BuildingList.js* - This is a React Component that prints the building code and the name to the screen
+    - *Search.js*  - This is a React Component that filters the contents of the list based on the user's input in the textbox
+    - *ViewBuilding.js* - This is a React Component that allows us to view additional listing details for the current selected building             when a user clicks on a listing
+
+#### Development Goals - To DO List:
+In this assignment, we are only focused on creating your front-end user interface to filter and display listings, as well as add new listings or delete existing listings.
+
+As you develop the solution to this assignment you will need to complete at least the following tasks.  
+
+- App.js - Main Application
+    - Create the filterUpdate() function - to set the state of filter
+    - Create the selectUpdate() function - to set the state of selected building
+
+- BuildingList.js: *In this file you will*
+    - create a filter on the building list constant that allows you to filter on the name of the building 
+    - display only the buldings the meet the filter criteria
+    - Create an onClick listener action that will allow you to click on a building name and capture the ID
+
+- Search.js: *In this file you will*
+    - Capture the text that is typed into the textbox and store this value using the filterUpdate() function
+    - use the onChange listener function
+    - Note: You will need to understand how to use ref values from form inputs
+
+- ViewBuilding.js:
+    - Captured building ID to look-up the additional information for the building
+    - Return additional details of the building to be rendered on the screen for the user
+
+- Create two new components that allow you to add and remove elements from the list.
+    - AddBuilding.js - Add a buliding to the listings
+    - RemoveBuilding.js - remove a building from the listings
+
+- index.css - Style the User Interface of this app using CSS and Bootstrap 4 to make this app look professional and user friendly, e.g., 
+    - style the listings
+    - add icons for search, add, and delete
+    - search bar
+    - buttons
+    - card for viewing the selected listing (ViewBuilding.js)
+
+
+### Setup
+*Note: This is a big assignment, start early and work on getting simple things working first. **Remember the Baby Name App tutorial listed in the React section, provides a video tutorial walkthrough of many of the feaures you will be completing for this project.**
+
+1. Install Bootstrap 4, [there are 3  ways](https://getbootstrap.com/docs/4.3/getting-started/download/):
+   (1) npm install bootstrap (or yarn add bootstrap) - *Recommended*
+   -   Install other dependencies - see console log messages during install
+       -    `npm install bootstrap`
+       -    `npm install jquery@1.9.1`
+       -    `npm install typescript@*`
+       -    `npm install popper.js@^1.14.7`
     
-/* Show the current listing */
-exports.read = function(req, res) {
-  /* send back the listing as json from the request */
-};
+    (2) through CDN 
+       -   simply add the link in head tag and script before closing body tag
+       -   see notes about additional CDNs for jQuery and Popper.js before it.
+    
+    (3) download - ***great for project*** not recommended for Bootcamp #4 project
 
-/* Update a listing - Complete the three tasks*/
-exports.update = function(req, res) {
-  var listing = req.listing;
-  
-  /* (1) Replace the article's properties with the new properties found in req.body 
-    (2) save the coordinates (located in req.results if there is an address property)
-    (3) Save the article 
-    */
- };
-```
-**Now the questions is how do you use these modules?** 
-You **Import modules** at the top of the files in which you want to use them. Notice at the top of this file, `listings.server.controller.js` we have imported the Lisitngs model as a variable `var Listing = require('../models/listings.server.model.js');` 
-This provides the controller the access to the listing model.
+    [Bootstrap Style Guide](https://drive.google.com/file/d/1fumbJT-ln-WzrSY_ZEtN44WhAw2asyXF/view) created for course 
+    *You will use this later in the project when you start to style your page* 
 
-Check out the following tutorials for simple examples and explanation of [exports](https://www.sitepoint.com/understanding-module-exports-exports-node-js/), [export modules](https://adrianmejia.com/getting-started-with-node-js-modules-require-exports-imports-npm-and-beyond/), and importing modules. 
+2. Install the [create-react-app](https://github.com/facebook/create-react-app#creating-an-app)
+To help us get started quickly, we will be using the create-react-app, a template generator for creating React Applciations quickly without having to install a ton of external dependencies. 
 
-### Open Cage Data - Open Source Map & Geocoding API
-Along with building our own API, for this assignment, we will be using a 3rd party Geocoding API to retreive coordinates for each new building we add to our database. We will be using **forward geocoding** to identify the `latitude` and `longitude` from a given address. In particular, we will be retreiving the value from `results.geometery`, see [quick start guide](https://opencagedata.com/api#quickstart) for more details. To use this API you must Sign-up for a [free public key](https://opencagedata.com/) that you will add to your config file.  Learn more by visiting the following links
-- see [course slides ](https://drive.google.com/file/d/1eSecDjL-vVvuQQdIDEN-ZmiMobmwXxUc/view)that provide and overview of open cage data.
-- [open cage data api](https://opencagedata.com/api#intro)
-- play around with the API using the [tutorial](https://opencagedata.com/code#tutorials) and [demo](https://opencagedata.com/demo) to see how it works
+Run the command in terminal to create a starter application my-app (note: you can change this to bootcamp4 if you like.)
 
-### API Testing with Postman
-[Postman](https://www.getpostman.com/product/api-client) is an API Development and Testing Environment. It has many cool features and support for developers who are creating backend APIs. We will be using Postman's features for sending HTTP requests and viewing HTTP respnonses by creating and testing REST queries.
+`npx create-react-app my-app`
 
-For this assignment, it may be useful to use Postman to check that you are formatting your routes appropriately before putting them in your code. It is also useful when you don't have a front-end hooked up to your backend so that you can test that your code works. **Check out this [postman tutorial](https://www.guru99.com/postman-tutorial.html)** for a walk through of the tool and its features. It is a great tool to have in your pocket and well worth the time investment.
+or
 
-## Assignment Details
-Now go ahead and fork this assignment's repository. You'll notice that the file structure of the application is now more involved than previous assignments. Browse around and take note of where each part of the application exists. 
+`yarn create react-app my-app`
 
-Navigate to `server/config/express.js`. This is where you will place code to configure your Express application. The **morgan** module is used to log requests to the console for debugging purposes. The **body parser** module is middleware that will allow you to access any data sent in requests as `req.body`. 
+or
 
-In `server/routes/listings.server.routes.js`, you will find code that specifies the request handlers for CRUD tasks. To learn more about the Express router, [go to this page](http://expressjs.com/en/guide/routing.html) and scroll down to the section on *express.Router.*
+`npm init react-app my-app`
 
-### Part 1 - Submit PDF in Canvas to Bootcamp #3
-Create a diagram of how the different parts of the server interact with one another and add descriptive text as needed to demonstrate your understanding of the functionality of each file and their relationships to each other. Specifially make note of: 
-   - the relationship between server.js, app.js, and express.js and the router file. With your starting point in the application being `server.js`
-    - how the router makes use of the controllers and model to determine the flow of request handling. Trace through each routes in `listings.server.routes.js` as the basis of your diagram. Consider makine a sequence diagram (http://www.agilemodeling.com/artifacts/sequenceDiagram.htm) to help you communicate the flow of calls and data. 
-   - the content defined in each controller and their roles in the application
-    - how middleware is used throughout the application to modularize the code (e.g., (application-level, routing, controller, etc)
-   - the relationship between the test files and the missing functionality of the files you will need to update. What do they tell you need to do?
-   
-### Part 2 - Submit in GitHub
-This Bootcamp is an exercise in test driven development (TDD). When you first start this assignment all your test will most likely be failing. Your job is to write code to get tests to pass. Work on one test at a time. You will find it to be quite gratifying when your code passes a test. You should also try to make you own test cases and see if you can pass them. This is a really great practice to better understand the tests in these assignments and to test your understanding of how your code works. 
+3.  after it is installed, you should be able to cd into the project directory 
 
-#### To Do List
-1. Update your `config.s` file using the config.example.js
-    - Add in your MongoDB Atlas URI
-    - Sign-up for a free public key https://opencagedata.com/ and add it to your config file - This key will allow us to access open cage data's `geocoding api` to retreive coordinates for new buildings you add to the application.
+4. Inside the newly created project, you can run some built-in commands:
 
-2. Complete the app configuration in `express.js`. 
-  - It should serve the static files found in the `public` folder when a user makes a request to the path `/`. [Refer to this documentation](http://expressjs.com/en/starter/static-files.html) for help. 
-  - It should use the listings router for requests going to the `/api/listings` path. 
-  - Last it should direct users to the client side `index.html` file for requests to any other path
-  - now run node `server.js` to see how our server is working and navigate to `http://localhost:8080` in the browser. Try some of the routes and see what happens. Right now, we only serve up index.html and the server hangs for all the other routes in our express.js file
-    Note: this may require several npm install commmands for `Mongoose` , `express` , `morgan` , and `request` before it will run properly.
+    `npm start` or `yarn start`
 
-3. In MongoDB Atlas, delete your database from Bootcamp2 so you can start clean. Setup an empty database to begin our development.
+    Runs the app in development mode.
 
-4. Implement the `listings.server.model.js` file this is our mongoose model for our database
-    - **before you start coding** navigate to `server/tests` folder, review and **run** the model test `mocha listings.server.model.test.js`  
-    *note:* The functionality your code needs to pass, which tests pass, and the content of your database
-    *note:* You may have to install some packages using npm install -g `package name`
-    - **now open** the `listings.server.model.js` file, you'll notice that this file looks a lot like the `ListingSchema.js` file from Bootcamp Assignment #2 because it is exactly the same so it should be easy to implement the functionality.
-    - **test your implementation** again by running the tests found in `listings.server.model.test.js`
-    - try creating your own test: add a test listing at the top of the file and copy, paste, and modify one of the test to see if you can get it to run and successfully pass. Note the content of your database. 
+5. It should auto-open http://localhost:3000 in the browser after it starts up a server for you. If a browser doesn't open up, copy and paste this link into your web brower with a starter page.
 
-5. In MongoDB Atlas, delete the current content of your database. Then reinitialize it by running    `node JSONtoMongo.js` out of the Bootcamp #2 directory. Check your database and make sure you have 147 documents before proceeding.
+6. After this you should open the folder and replace the src file wit the file for this Bootcamp #4 github repo. You should then be able to see a listing of the building codes and buildings, search/filter texbox and space to output details about your project.
 
-6. Implement the request handlers `update`, `delete`, `list` in `listings.server.controller.js`
-    - **before you start coding** navigate to `server/tests` folder, review and run the model test `mocha listings.server.routes.test.js`  - note what functionality your code needs to pass
-    *note:* You may have to install some packages using npm install -g `package name`
-    - **implement functionality**  `update`, `delete`, `list` in `listings.server.controller.js` see notes and tutorials identified earlier in this README file for help.
-    **You may want to use [postman](https://www.getpostman.com/downloads/) to develop and manually test your update, delete, list routes** (*Note:* You will have to start your server to use Postman run `node server.js`. )
-    (i)  The following should GET a single listing by ID, copy and paste a single entry "id" from your database to replace the <ID> tag `http://localhost:8080/api/listings/<ID>`
-    (ii) The following sould GET all the listing - `http://localhost:8080/api/listings`
-    (iii) Try also to test out your post and update requests
-    - **run automated tests on your implementation** by running the mocha test found in the test folder `listings.server.routes.test.js` - some test may still fail. See notes in the test file to help resolve errors.
+7. Use the starter code (e.g, create-react-app with Bootcamp #4 code you created in steps 1-3) to create a front-end interface with React.js to display listings, as well as the ability to add new listings and delete old ones. 
 
-5. Make sure your server is functioning correctly by starting it up by running the command `node server.js.` Manually **browser test your routes** try adding a test to create or update a listing and check the database to see if it is there. You may manually have to deleted the listing once you add it, unless you add a test to delete it.
+**See Development Goals** above for specific implemenetation details for this project.
 
-6. Complete the `coordinates.server.controller.js` you will need to connect to opencagedata.com to lookup the address provided in the listing and add the latitude and longitude coordinates for the new listing you've added. This will require you to
-    - **construct a template for your request string** see open cage date [quickstart](https://opencagedata.com/api#quickstart) guide and [best practices](https://opencagedata.com/api#bestpractices) for string construction. 
-    - Consider using **postman** to help you test out the right connection string format, see [open cage postman tutorial](https://opencagedata.com/tutorials/geocode-in-postman)
-    - **parse the response** for the results you need: `latitude` & `longitude`. Note: `listins.server.controller.js` is using the `req.results` to update the listing. *Assumption:* For the purpose of this assignment, assume we find a match and the first result returned is our address. The results for building on campus aren't super robust in the open cage data. Resolving this issues is beyond this scope of this assignment. 
-    - **be sure to add error handling** if the address provided fails due to formatting. You don't want your application to crash. 
-    - **test** your implementation again to ensure that your application is actually changing the database and retreiving from the database. Consider writing or adapting a test to ensure the latitude and longitude are properly saved.
+**Debugging Tips:** 
 
+(1) Use console.log statements in your render functions to print to the browser console to debug your program and to ensure you are passing the data around that you expected. This will help tremendously when you have errors that you can't figure out. 
 
+(2) Use [**React Developer Tools**](https://www.freecodecamp.org/news/how-to-see-your-react-state-props-in-the-browser-774098a50fcc/) - Download the React Developer Tools Chrome Plug-in, it is specifically designed to help you debug React applications.
+
+#### Submission: See Canvas for Submission Instructions
